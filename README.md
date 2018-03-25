@@ -5,3 +5,5 @@ Some utils for Linux users.
 * `monitor` - for the next X seconds displays the count of specified processes matching a Perl regex every second
 * `pentakill` - kills all processes matching a Perl regex
 * `seppuku` - shuts down a computer
+
+All utils, except for `gr8upd8` and `seppuku`, provide help if they are executed without parametres.
