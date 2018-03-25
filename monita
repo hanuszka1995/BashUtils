@@ -1,14 +1,220 @@
 #!/bin/bash
 
+function display_help() {
+	echo "monita: I don't know, what to do.";
+	echo "Execute: monita %time %procname [%flag]";
+	echo;
+	echo "The %procname is a Perl regex";
+	echo;
+	echo "Flags:";
+	echo "  -a        : Count all processes";
+	echo "  -c        : Display CPU usage (in %, don't show a unit)";
+	echo "  -C        : Display CPU usage (in %, show a unit)";
+	echo "  -d        : Display memory usage (in %, don't show a unit)";
+	echo "  -D        : Display memory usage (in %, show a unit)";
+	echo "  -F        : Display memory usage (in the most relevant unit, e.g. 1.5 GB instead of 1,536 MB)";
+	echo "  -g        : Display memory usage (in GB, don't show a unit)";
+	echo "  -G        : Display memory usage (in GB, show a unit)";
+	echo "  -h        : Show help";
+	echo "  -k        : Display memory usage (in kB, don't show a unit)";
+	echo "  -K        : Display memory usage (in kB, show a unit)";
+	echo "  -m        : Display memory usage (in MB, don't show a unit)";
+	echo "  -M        : Display memory usage (in MB, show a unit)";
+	echo "  -s        : Don't consider monita itself";
+	echo "  -S        : Don't consider monita itself and all grep processes";
+	echo "  --help    : Show help";
+	echo "  (no flag) : Same as -a flag"
+}
+
 if [[ $# -eq 2 ]]; then
 	for i in `seq 1 1 $1` ; do
 		ps ax | grep -P $2 | wc -l; sleep 1;
 	done
-elif [[ $# -eq 3 ]] ; then
-	: #flagz 
+elif [[ $# -ge 3 ]] ; then
+	if [[ $3 =~ h || $3 =~ --help ]] ; then display_help; exit; fi
+
+	if [[ $3 =~ S ]] ; then
+		pattern=$2 
+		removal=$0
+		wgrep="true"
+	elif [[ $3 =~ s ]] ; then
+		pattern=$2 
+		removal=$0
+		wgrep="false"
+	else 
+		pattern=$2
+		removal='^(?![\s\S])'
+		wgrep="false"
+	fi
+
+	if [[ $3 =~ a || $3 == "-s" || $3 == "-S" ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps ax | grep -P $pattern | grep -v $removal | grep -v grep | wc -l; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps ax | grep -P $pattern | grep -v $removal | wc -l; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi
+	if [[ $3 =~ k ]] ; then
+		if [[ "$wgrep" == "true" ]]; then 
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi  
+	if [[ $3 =~ K ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else {print sum " kB";}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else {print sum " kB";}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi 
+	if [[ $3 =~ m ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi  
+	if [[ $3 =~ M ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print "0 MB";} else {print sum " MB";}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print "0 MB";} else {print sum " MB";}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi 
+	if [[ $3 =~ g ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi  
+	if [[ $3 =~ G ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print "0 GB";} else {print sum " GB";}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print "0 GB";} else {print sum " GB";}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi
+	if [[ $3 =~ d ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$4} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$4} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi  
+	if [[ $3 =~ D ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$4} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$4} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi 
+	if [[ $3 =~ c ]] ; then
+		if [[ "$wgrep" == "true" ]]; then 
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$3} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$3} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi  
+	if [[ $3 =~ C ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$3} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$3} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi 
+	if [[ $3 =~ F ]] ; then 
+		if [[ "$wgrep" == "true" ]]; then
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else if (sum>=1048576) {print sum/1048576 " GB";} else if (sum>=1024) {print sum/1024 " MB";} else {print sum " kB";} }'; 
+				sleep 1;
+			done
+		else
+			for i in `seq 1 1 $1` ; do
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else if (sum>=1048576) {print sum/1048576 " GB";} else if (sum>=1024) {print sum/1024 " MB";} else {print sum " kB";} }'; 
+				sleep 1;
+			done
+		fi
+		exit
+	fi
 else
-	echo "I don't know, what to do.";
-	echo "Execute: monita %time %procname [%flag]";
-	echo;
-	echo "The %procname is a Perl regex";
+	display_help
 fi
