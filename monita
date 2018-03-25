@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ $# -eq 2 ]]; then
+	for i in `seq 1 1 $1` ; do
+		ps ax | grep -P $2 | wc -l; sleep 1;
+	done
+elif [[ $# -eq 2]]; then
+	#flagz
+else
+	echo "I don't know, what to do.";
+	echo "Execute: monita %time %procname [%flag]";
+	echo;
+	echo "The %procname is a Perl regex";
+fi

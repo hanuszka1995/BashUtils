@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ "$1" == "sudo" ]] ; then
+	sudo apt-get -y update;
+	sudo apt-get -y upgrade;
+	sudo apt-get -y dist-upgrade;
+else
+	apt-get -y update; 
+	if [[ $? -ne 0 && `whoami` != "root" ]] ; then echo -e "\e[1;31mERROR: \e[mAn error occured during '\e[1;33mupdate\e[m'.\n       If you aren't root, then you may try \"\e[1;36mgr8upd8 sudo\e[37m\"\e[m"; fi 
+	apt-get -y upgrade; 
+	if [[ $? -ne 0 && `whoami` != "root" ]] ; then echo -e "\e[1;31mERROR: \e[mAn error occured during '\e[1;33mupgrade\e[m'.\n       If you aren't root, then may try \"\e[1;36mgr8upd8 sudo\e[37m\"\e[m"; fi 
+	apt-get -y dist-upgrade; 
+	if [[ $? -ne 0 && `whoami` != "root" ]] ; then echo -e "\e[1;31mERROR: \e[mAn error occured during '\e[1;33mdist-upgrade\e[m'.\n       If you aren't root, then may try \"\e[1;36mgr8upd8 sudo\e[37m\"\e[m"; fi 
+fi
