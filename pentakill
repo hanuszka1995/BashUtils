@@ -6,8 +6,8 @@ elif [[ $# -ge 2 ]]; then
 	case "$2" in
 		"-f" ) ps ax | grep -P $1 | cut -c 1-5 | xargs kill -9 ;;
 		"-r" ) ps ax | grep -P $1 | cut -c 1-5 | sort -nr | xargs kill -9 ;;
-		"-F" ) ps ax | grep -P $1 | grep -v monita | cut -c 1-5 | xargs kill -9 ;;
-		"-R" ) ps ax | grep -P $1 | grep -v monita | cut -c 1-5 | sort -nr | xargs kill -9 ;;
+		"-F" ) ps ax | grep -P $1 | grep -Pv monita | cut -c 1-5 | xargs kill -9 ;;
+		"-R" ) ps ax | grep -P $1 | grep -Pv monita | cut -c 1-5 | sort -nr | xargs kill -9 ;;
 		* ) ;;
 	esac
 else
