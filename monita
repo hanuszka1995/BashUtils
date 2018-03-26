@@ -5,8 +5,7 @@ function display_help() {
 	echo "Execute: monita %time %procname [%flag]";
 	echo;
 	echo "The %procname is a Perl regex";
-	echo;
-	echo "Flags:";
+	echo "Flags (to use multiple flags, just combine them e.g. '-tFS'):";
 	echo "  -a        : Count all processes";
 	echo "  -c        : Display CPU usage (in %, don't show a unit)";
 	echo "  -C        : Display CPU usage (in %, show a unit)";
@@ -22,6 +21,7 @@ function display_help() {
 	echo "  -M        : Display memory usage (in MB, show a unit)";
 	echo "  -s        : Don't consider monita itself";
 	echo "  -S        : Don't consider monita itself and all grep processes";
+	echo "  -t        : Show timestamp (Y/M/D H:M) before the result"
 	echo "  --help    : Show help";
 	echo "  (no flag) : Same as -a flag"
 }
@@ -31,13 +31,19 @@ if [[ $# -eq 2 ]]; then
 		ps ax | grep -P $2 | wc -l; sleep 1;
 	done
 elif [[ $# -ge 3 ]] ; then
-	if [[ $3 =~ h || $3 =~ --help ]] ; then display_help; exit; fi
+	if [[ ${BASH_ARGV[0]} =~ h || ${BASH_ARGV[0]} =~ --help ]] ; then display_help; exit; fi
 
-	if [[ $3 =~ S ]] ; then
+	if [[ ${BASH_ARGV[0]} =~ t ]] ; then
+		tms="true"
+	else
+		tms="false"
+	fi
+
+	if [[ ${BASH_ARGV[0]} =~ S ]] ; then
 		pattern=$2 
 		removal=$0
 		wgrep="true"
-	elif [[ $3 =~ s ]] ; then
+	elif [[ ${BASH_ARGV[0]} =~ s ]] ; then
 		pattern=$2 
 		removal=$0
 		wgrep="false"
@@ -47,168 +53,192 @@ elif [[ $# -ge 3 ]] ; then
 		wgrep="false"
 	fi
 
-	if [[ $3 =~ a || $3 == "-s" || $3 == "-S" ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ a || ${BASH_ARGV[0]} == "-s" || ${BASH_ARGV[0]} == "-S" || ${BASH_ARGV[0]} == "-t" ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps ax | grep -P $pattern | grep -v $removal | grep -v grep | wc -l; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps ax | grep -P $pattern | grep -v $removal | wc -l; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi
-	if [[ $3 =~ k ]] ; then
+	if [[ ${BASH_ARGV[0]} =~ k ]] ; then
 		if [[ "$wgrep" == "true" ]]; then 
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi  
-	if [[ $3 =~ K ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ K ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else {print sum " kB";}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else {print sum " kB";}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi 
-	if [[ $3 =~ m ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ m ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi  
-	if [[ $3 =~ M ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ M ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print "0 MB";} else {print sum " MB";}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1024; if (sum==0) {print "0 MB";} else {print sum " MB";}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi 
-	if [[ $3 =~ g ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ g ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi  
-	if [[ $3 =~ G ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ G ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print "0 GB";} else {print sum " GB";}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {sum/=1048576; if (sum==0) {print "0 GB";} else {print sum " GB";}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi
-	if [[ $3 =~ d ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ d ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$4} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$4} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi  
-	if [[ $3 =~ D ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ D ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$4} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$4} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi 
-	if [[ $3 =~ c ]] ; then
+	if [[ ${BASH_ARGV[0]} =~ c ]] ; then
 		if [[ "$wgrep" == "true" ]]; then 
 			for i in `seq 1 1 $1` ; do
-				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$3} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
-				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$3} END {if (sum==0) {print 0;} else {print sum;}}'; 
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print 0;} else {print sum;}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi  
-	if [[ $3 =~ C ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ C ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
-				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$3} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
+				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
-				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$3} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
+				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
 				sleep 1;
 			done
 		fi
 		exit
 	fi 
-	if [[ $3 =~ F ]] ; then 
+	if [[ ${BASH_ARGV[0]} =~ F ]] ; then 
 		if [[ "$wgrep" == "true" ]]; then
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | grep -v grep | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else if (sum>=1048576) {print sum/1048576 " GB";} else if (sum>=1024) {print sum/1024 " MB";} else {print sum " kB";} }'; 
 				sleep 1;
 			done
 		else
 			for i in `seq 1 1 $1` ; do
+				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
 				ps aux | grep -P $pattern | grep -v $removal | awk '{sum+=$6} END {if (sum==0) {print "0 kB";} else if (sum>=1048576) {print sum/1048576 " GB";} else if (sum>=1024) {print sum/1024 " MB";} else {print sum " kB";} }'; 
 				sleep 1;
 			done
