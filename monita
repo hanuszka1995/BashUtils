@@ -70,25 +70,6 @@ elif [[ $# -ge 3 ]] ; then
 
 	# Print it
 
-	if [[ ${BASH_ARGV[0]} =~ a || ${BASH_ARGV[0]} == "-s" || ${BASH_ARGV[0]} == "-S" || ${BASH_ARGV[0]} == "-t" ]] ; then 
-		if [[ "$wgrep" == "true" ]]; then
-			for i in `seq 1 1 $1` ; do
-				echo "$substart"
-				if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
-				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
-				ps ax | grep -P $pattern | grep -v $removal | grep -v grep | wc -l; 
-				sleep 1;
-			done
-		else
-			for i in `seq 1 1 $1` ; do
-				if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
-				if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
-				ps ax | grep -P $pattern | grep -v $removal | wc -l; 
-				sleep 1;
-			done
-		fi
-		exit
-	fi
 	if [[ ${BASH_ARGV[0]} =~ k ]] ; then
 		for i in `seq 1 1 $1` ; do
 			if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
@@ -188,6 +169,15 @@ elif [[ $# -ge 3 ]] ; then
 		done
 		exit
 	fi
+	#if [[ ${BASH_ARGV[0]} =~ a ]] ; then 
+		for i in `seq 1 1 $1` ; do
+			if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
+			if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
+			ps ax | grep -P $pattern | grep -v $removal | grep -v $wgrep | wc -l; 
+			sleep 1;
+		done
+		exit
+	#fi
 else
 	display_help
 fi
