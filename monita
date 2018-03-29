@@ -32,6 +32,10 @@ function list_proc() { 	#args - pattern removal wgrep
 	ps aux | grep -P $1 | grep -v $2 | grep -v $3
 }
 
+function format_output() { #args - unit divisor
+	awk -v unit="$1" -v divisor="$2" '{sum+=$6} END {sum/=divisor; if (sum==0) {print 0 unit;} else {print sum unit;}}'; 
+}
+
 
 # ----------- main -------------
 
@@ -146,7 +150,7 @@ elif [[ $# -ge 3 ]] ; then
 		for i in `seq 1 1 $1` ; do
 			if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
 			if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
-			list_proc $pattern $removal "$wgrep" | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print 0;} else {print sum;}}'; 
+			list_proc $pattern $removal "$wgrep" | awk '{sum+=$3} END {if (sum==0) {print 0;} else {print sum;}}'; 
 			sleep 1;
 		done
 		exit
@@ -155,7 +159,7 @@ elif [[ $# -ge 3 ]] ; then
 		for i in `seq 1 1 $1` ; do
 			if [ $substart -ne -1 ] ; then order=$[$i - $substart]; echo -ne "$order\t"; fi
 			if [[ "$tms" == "true" ]] ; then echo -ne "$(date +'%Y/%m/%d %T')\t"; fi
-			list_proc $pattern $removal "$wgrep" | awk '{sum+=${BASH_ARGV[0]}} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
+			list_proc $pattern $removal "$wgrep" | awk '{sum+=$3} END {if (sum==0) {print "0%";} else {print sum "%";}}'; 
 			sleep 1;
 		done
 		exit
